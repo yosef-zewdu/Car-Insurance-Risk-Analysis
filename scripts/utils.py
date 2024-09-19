@@ -180,22 +180,31 @@ def count_outliers_iqr(df):
     return lower_bounds, upper_bounds, outlier_counts
 
 
-# def plot_scatter_outliers(dff, lower_bounds, upper_bounds, outlier_counts):
-#     # Create scatter plots for columns with outliers
-#     for column, count in outlier_counts.items():
-#         if count > 0:  # Only plot columns with outliers
-#             plt.figure(figsize=(8, 6))
-#             plt.scatter(dff.index, dff[column], color='skyblue', label='Data Points')
-            
-#             # Accessing the upper and lower bounds for the current column
-#             plt.axhline(y=upper_bounds[column], color='r', linestyle='--', label='Upper Bound')
-#             plt.axhline(y=lower_bounds[column], color='g', linestyle='--', label='Lower Bound')
-            
-#             plt.title(f'Scatter Plot of {column} with Outlier Bounds')
-#             plt.xlabel('Index')
-#             plt.ylabel(column)
-#             plt.legend()
-#             plt.show()
+
+# Function to detect and cap outliers using IQR
+def cap_outliers_iqr(dff):
+    df = dff.copy()
+    lower_bounds = {}
+    upper_bounds = {}
+
+    for column in df.select_dtypes(include=['number']).columns:
+        Q1 = df[column].quantile(0.25)
+        Q3 = df[column].quantile(0.75)
+        IQR = Q3 - Q1
+        
+        # Define bounds for capping
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        
+        # Cap the outliers
+        df[column] = df[column].clip(lower=lower_bound, upper=upper_bound)
+        
+    
+    return df
+
+# Example usage:
+# df = pd.DataFrame(...)  # Your DataFrame
+# lower_bounds, upper_bounds = cap_outliers_iqr(df)
 
 
 
